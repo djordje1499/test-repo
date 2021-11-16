@@ -1,8 +1,8 @@
 name: "Deploy to NuGet"
 
 on:
-  push:
-   tags:
+  pull_request:
+    tags:
     - 'v*'
 
 env:
