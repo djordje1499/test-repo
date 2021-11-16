@@ -26,6 +26,9 @@ jobs:
       - name : Listing dir
         run : ls -a
 
+      - name: 'Restore packages'
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+        
       - name : Restore and build packages
         id : build-results
         run : dotnet build ${{ env.HOSPITAL-DLL-PATH }} --configuration Release
