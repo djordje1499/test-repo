@@ -6,45 +6,36 @@ on:
     - 'v*'
 
 env:
-  HOSPITAL-DLL-PATH : 'PharmacyInformationSystem\Pharmacy\PharmacyClassLib.csproj'
-  OUTPUT-DLL-DIR : '${{ github.workspace }}\output'
-  NUGET-SOURCE-URL : 'https://api.nuget.org/v3/index.json'
- 
+  PROJECT_PATH: 'PharmacyInformationSystem\Pharmacy\PharmacyClassLib.csproj'
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}\output
+  NUGET_SOURCE_URL: 'https://api.nuget.org/v3/index.json'
 
 jobs:
-  deploy-nuget:
-    runs-on : ubuntu-latest
+  deploy:
+    name: 'Deploy'
+    runs-on: 'windows-latest'
     steps:
-      - name : Pulling repository to the VM
-        uses : actions/checkout@v2
-      
-      - name : Installing the dotnet tool
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-verison: '5.0.x'
+    - name: 'Checkout'
+      uses: actions/checkout@v2
 
-      - name : Listing dir
-        run : ls -a
+    - name: 'Install dotnet'
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
 
-      - name: 'Restore packages'
-        run: dotnet restore ${{ env.HOSPITAL-DLL-PATH }}
+    - name: 'Restore packages'
+      run: dotnet restore ${{ env.PROJECT_PATH }}
 
-      - name : Restore and build packages
-        id : build-results
-        run : dotnet build ${{ env.HOSPITAL-DLL-PATH }} --configuration Release
+    - name: 'Build project'
+      run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
 
-      - name : Determining the version
-        id : get_version
-        uses : battila7/get-version-action@v2
+    - name: 'Get Version'
+      id: version
+      uses: battila7/get-version-action@v2
 
-      - name : Found version
-        run: |
-          echo ${{ steps.get_version.outputs.version }}
-          echo ${{ steps.get_version.outputs.version-without-v }}
-      
-      - name : Packaging the dll
-        run: dotnet pack ${{ env.HOSPITAL-DLL-PATH }} --no-restore --no-build --configuration Release  -p:PackageVersion=${{steps.get_version.outputs.version-without-v}} --output ${{ env.OUTPUT-DLL-DIR }}
+    - name: 'Pack project'
+      run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:PackageVersion=${{ steps.version.outputs.version-without-v }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
 
-      - name : Pushing to nuget repository
-        run: dotnet nuget push ${{ env.OUTPUT-DLL-DIR }}/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s ${{ env.NUGET-SOURCE-URL }}
+    - name: 'Push package'
+      run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.nupkg -k ${{ secrets.NUGET_AUTH }} -s ${{ env.NUGET_SOURCE_URL }}
 
