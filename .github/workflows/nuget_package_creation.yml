@@ -12,7 +12,6 @@ env:
 
 jobs:
   deploy:
-    if: github.event.base_ref == 'refs/heads/develop'
     name: 'Deploy'
     runs-on: 'ubuntu-latest'
     steps:
