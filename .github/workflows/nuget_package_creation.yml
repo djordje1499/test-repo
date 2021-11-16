@@ -1,7 +1,6 @@
 name: "Deploy to NuGet"
 
 on:
-
   pull_request:
     tags:
       - 'v*'
