@@ -1,7 +1,7 @@
 name: "Deploy to NuGet"
 
 on:
-  pull_request:
+  push:
     tags:
     - 'v*'
 
